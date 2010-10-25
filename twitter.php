@@ -29,6 +29,10 @@
  * - added getBlocked, which returns an array of blocked user-arrays
  * - added getBlockedIds, which returns an array of blocked ids
  *
+ * Changelog since 1.0.4
+ * - renamed verifyCrendentials to verifyCredentials (typo)
+ *
+ *
  * License
  * Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  *
@@ -41,7 +45,7 @@
  * This software is provided by the author "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
  *
  * @author		Tijs Verkoyen <php-twitter@verkoyen.eu>
- * @version		1.0.4
+ * @version		1.0.5
  *
  * @copyright	Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  * @license		BSD License
@@ -58,7 +62,7 @@ class Twitter
 	const TWITTER_API_PORT = 80;
 
 	// current version
-	const VERSION = '1.0.4';
+	const VERSION = '1.0.5';
 
 
 	/**
@@ -98,8 +102,8 @@ class Twitter
 	 * Default constructor
 	 *
 	 * @return	void
-	 * @param	string[optional] $username
-	 * @param	string[optional] $password
+	 * @param	string[optional] $username	The username for an authenticating user
+	 * @param	string[optional] $password	The password for an authenticating user
 	 */
 	public function __construct($username = null, $password = null)
 	{
@@ -256,7 +260,8 @@ class Twitter
 
 
 	/**
-	 * Get the useragent
+	 * Get the useragent that will be used. Our version will be prepended to yours.
+	 * It will look like: "PHP Akismet/<version> <your-user-agent>"
 	 *
 	 * @return	string
 	 */
@@ -306,7 +311,7 @@ class Twitter
 	 * @return	void
 	 * @param	string $password
 	 */
-	public function setPassword($password)
+	private function setPassword($password)
 	{
 		$this->password = (string) $password;
 	}
@@ -316,7 +321,7 @@ class Twitter
 	 * Set the timeout
 	 *
 	 * @return	void
-	 * @param	int $seconds
+	 * @param	int $seconds	The timeout in seconds
 	 */
 	public function setTimeOut($seconds)
 	{
@@ -325,11 +330,11 @@ class Twitter
 
 
 	/**
-	 * Set the user-agent for you application
-	 * It will be appended to ours
+	 * Get the useragent that will be used. Our version will be prepended to yours.
+	 * It will look like: "PHP Akismet/<version> <your-user-agent>"
 	 *
 	 * @return	void
-	 * @param	string $userAgent
+	 * @param	string $userAgent	Your user-agent, it should look like <app-name>/<app-version>
 	 */
 	public function setUserAgent($userAgent)
 	{
@@ -343,7 +348,7 @@ class Twitter
 	 * @return	void
 	 * @param	string $username
 	 */
-	public function setUsername($username)
+	private function setUsername($username)
 	{
 		$this->username = (string) $username;
 	}
@@ -725,7 +730,7 @@ class Twitter
 	 * @param	string[optional] $id	The id or screen name of the user for whom to request a list of friends.
 	 * @param	int[optional] $page	Specifies the page of friends to receive.
 	 */
-	public function getFriends($id = null, $page = null)
+	public function getFriends($id = null, $cursor = null)
 	{
 		// build parameters
 		$aParameters = array();
@@ -1183,7 +1188,7 @@ class Twitter
 	 *
 	 * @return	bool
 	 */
-	public function verifyCrendentials()
+	public function verifyCredentials()
 	{
 		try
 		{
