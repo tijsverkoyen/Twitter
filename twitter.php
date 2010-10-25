@@ -16,6 +16,19 @@
  * Changelog since 1.0.2
  * - sinceId is from now on treated as a string instead of int. (thx @Paul Matthews)
  *
+ * Changelog since 1.0.3
+ * - rewrote some comments
+ * - fixed some PHPDoc
+ * - it seems Twitter removed the $since-parameter, so I removed it from getFriendsTimeline, getUserTimeline, getDirectMessages, getSentDirectMessages, ...
+ * - implemented maxId into getFriendsTimeline
+ * - renamed getReplies to getMentions to reflect the Twitter API
+ * - added $count for getDirectMessages, getSentDirectMessages, ...
+ * - added getFriendship which shows more details about a friendship
+ * - added getFriendIds and getFollowerIds which return only the ids instead of a user-array
+ * - added existsBlock which test if a block exists
+ * - added getBlocked, which returns an array of blocked user-arrays
+ * - added getBlockedIds, which returns an array of blocked ids
+ *
  * License
  * Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  *
@@ -27,11 +40,11 @@
  *
  * This software is provided by the author "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
  *
- * @author			Tijs Verkoyen <php-twitter@verkoyen.eu>
- * @version			1.0.3
+ * @author		Tijs Verkoyen <php-twitter@verkoyen.eu>
+ * @version		1.0.4
  *
- * @copyright		Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
- * @license			BSD License
+ * @copyright	Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
+ * @license		BSD License
  */
 class Twitter
 {
@@ -45,7 +58,7 @@ class Twitter
 	const TWITTER_API_PORT = 80;
 
 	// current version
-	const VERSION = '1.0.3';
+	const VERSION = '1.0.4';
 
 
 	/**
@@ -411,7 +424,7 @@ class Twitter
 	}
 
 
-// status methods
+// timeline methods
 	/**
 	 * Returns the 20 most recent statuses from non-protected users who have set a custom user icon.
 	 * Note that the public timeline is cached for 60 seconds so requesting it more often than that is a waste of resources.
@@ -445,22 +458,22 @@ class Twitter
 	 * This is the equivalent of /home on the Web.
 	 *
 	 * @return	array
-	 * @param	int[optional] $since	Narrows the returned results to just those statuses created after the specified UNIX-timestamp, up to 24 hours old.
 	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $maxId	Returns only statuses with an ID less than (that is, older than) or equal to the specified $maxId.
 	 * @param	int[optional] $count	Specifies the number of statuses to retrieve. May not be greater than 200.
 	 * @param	int[optional] $page
 	 */
-	public function getFriendsTimeline($since = null, $sinceId = null, $count = null, $page = null)
+	public function getFriendsTimeline($sinceId = null, $maxId = null, $count = null, $page = null)
 	{
 		// validate parameters
-		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId == '') throw new TwitterException('Invalid value for sinceId.');
+		if($maxId !== null && (string) $maxId == '') throw new TwitterException('Invalid value for maxId.');
 		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
 
 		// build url
 		$aParameters = array();
-		if($since !== null) $aParameters['since'] = date('r', (int) $since);
 		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
+		if($maxId !== null) $aParameters['max_id'] = (string) $maxId;
 		if($count !== null) $aParameters['count'] = (int) $count;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
@@ -490,22 +503,22 @@ class Twitter
 	 *
 	 * @return	array
 	 * @param	string[optional] $id	Specifies the id or screen name of the user for whom to return the friends_timeline.
-	 * @param	int[optional] $since	Narrows the returned results to just those statuses created after the specified UNIX-timestamp, up to 24 hours old.
 	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $maxId	Returns only statuses with an ID less than (that is, older than) or equal to the specified $maxId.
 	 * @param	int[optional] $count	Specifies the number of statuses to retrieve. May not be greater than 200.
-	 * @param	int[optional] $page
+	 * @param	int[optional] $page	Specifies the page or results to retrieve.
 	 */
-	public function getUserTimeline($id = null, $since = null, $sinceId = null, $count = null, $page = null)
+	public function getUserTimeline($id = null, $sinceId = null, $maxId = null, $count = null, $page = null)
 	{
 		// validate parameters
-		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId == '') throw new TwitterException('Invalid value for sinceId.');
+		if($maxId !== null && (string) $maxId == '') throw new TwitterException('Invalid value for maxId.');
 		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
 
 		// build parameters
 		$aParameters = array();
-		if($since !== null) $aParameters['since'] = date('r', (int) $since);
 		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
+		if($maxId !== null) $aParameters['max_id'] = (string) $maxId;
 		if($count !== null) $aParameters['count'] = (int) $count;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
@@ -533,6 +546,50 @@ class Twitter
 	}
 
 
+	/**
+	 * Returns the 20 most recent mentions (status containing @username) for the authenticating user.
+	 *
+	 * @return	array
+	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $maxId	Returns only statuses with an ID less than (that is, older than) or equal to the specified $maxId.
+	 * @param	int[optional] $count	Specifies the number of statuses to retrieve. May not be greater than 200.
+	 * @param	int[optional] $page	Specifies the page or results to retrieve.
+	 */
+	public function getMentionsReplies($sinceId = null, $maxId = null, $count = null, $page = null)
+	{
+		// validate parameters
+		if($sinceId !== null && (string) $sinceId == '') throw new TwitterException('Invalid value for sinceId.');
+		if($maxId !== null && (string) $maxId == '') throw new TwitterException('Invalid value for maxId.');
+		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
+
+		// build parameters
+		$aParameters = array();
+		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
+		if($maxId !== null) $aParameters['max_id'] = (string) $maxId;
+		if($count !== null) $aParameters['count'] = (int) $count;
+		if($page !== null) $aParameters['page'] = (int) $page;
+
+		// do the call
+		$response = $this->doCall('statuses/mentions.xml', $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// init var
+		$aStatuses = array();
+
+		// loop statuses
+		foreach ($xml->status as $status) $aStatuses[] = $this->statusXMLToArray($status);
+
+		// return
+		return (array) $aStatuses;
+	}
+
+
+// status methods
 	/**
 	 * Returns a single status, specified by the id parameter below.
 	 *
@@ -597,46 +654,6 @@ class Twitter
 
 
 	/**
-	 * Returns the 20 most recent @replies (status updates prefixed with @username) for the authenticating user.
-	 *
-	 * @return	array
-	 * @param	int[optional] $since	Narrows the returned results to just those replies created after the specified UNIX-timestamp, up to 24 hours old.
-	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
-	 * @param	int[optional] $page
-	 */
-	public function getReplies($since = null, $sinceId = null, $page = null)
-	{
-		// validate parameters
-		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
-
-		// build parameters
-		$aParameters = array();
-		if($since !== null) $aParameters['since'] = date('r', (int) $since);
-		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
-		if($page !== null) $aParameters['page'] = (int) $page;
-
-		// do the call
-		$response = $this->doCall('statuses/replies.xml', $aParameters, true, false);
-
-		// convert into xml-object
-		$xml = @simplexml_load_string($response);
-
-		// validate
-		if($xml == false) throw new TwitterException('invalid body');
-
-		// init var
-		$aStatuses = array();
-
-		// loop statuses
-		foreach ($xml->status as $status) $aStatuses[] = $this->statusXMLToArray($status);
-
-		// return
-		return (array) $aStatuses;
-	}
-
-
-	/**
 	 * Destroys the status specified by the required $id parameter.
 	 * The authenticating user must be the author of the specified status.
 	 *
@@ -671,12 +688,42 @@ class Twitter
 
 // user methods
 	/**
+	 * Returns extended information of a given user, specified by id or screen name.
+	 * This information includes design settings, so third party developers can theme their widgets according to a given user's preferences.
+	 * You must be properly authenticated to request the page of a protected user.
+	 *
+	 * @return	array
+	 * @param	string $id	The id or screen name of a user.
+	 */
+	public function getUser($id)
+	{
+		// build parameters
+		$aParameters = array();
+
+		// build url
+		$url = 'users/show/'. urlencode($id) .'.xml';
+
+		// do the call
+		$response = $this->doCall($url, $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// return
+		return (array) $this->userXMLToArray($xml, true);
+	}
+
+
+	/**
 	 * Returns up to 100 of the authenticating user's friends who have most recently updated.
 	 * It's also possible to request another user's recent friends list via the $id parameter.
 	 *
 	 * @return	array
 	 * @param	string[optional] $id	The id or screen name of the user for whom to request a list of friends.
-	 * @param	int[optional] $page
+	 * @param	int[optional] $page	Specifies the page of friends to receive.
 	 */
 	public function getFriends($id = null, $page = null)
 	{
@@ -745,61 +792,29 @@ class Twitter
 	}
 
 
-	/**
-	 * Returns extended information of a given user, specified by id or screen name.
-	 * This information includes design settings, so third party developers can theme their widgets according to a given user's preferences.
-	 * You must be properly authenticated to request the page of a protected user.
-	 *
-	 * @return	array
-	 * @param	string[optional] $id	The id or screen name of a user.
-	 * @param	string[optional] $email	May be used in place of $id.
-	 */
-	public function getFriend($id = null, $email = null)
-	{
-		// validate parameters
-		if($id === null && $email === null) throw new TwitterException('id or email should be specified.');
-
-		// build parameters
-		$aParameters = array();
-		if($email !== null) $aParameters['email'] = (string) $email;
-
-		// build url
-		$url = 'users/show/'. urlencode($id) .'.xml';
-		if($email !== null) $url = 'users/show.xml';
-
-		// do the call
-		$response = $this->doCall($url, $aParameters, true, false);
-
-		// convert into xml-object
-		$xml = @simplexml_load_string($response);
-
-		// validate
-		if($xml == false) throw new TwitterException('invalid body');
-
-		// return
-		return (array) $this->userXMLToArray($xml, true);
-	}
-
 
 // direct message methods
 	/**
 	 * Returns a list of the 20 most recent direct messages sent to the authenticating user.
 	 *
 	 * @return	array
-	 * @param	int[optional] $since	Narrows the resulting list of direct messages to just those sent after the specified UNIX-timestamp, up to 24 hours old.
 	 * @param	string[optional] $sinceId	Returns only direct messages with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $maxId	Returns only statuses with an ID less than (that is, older than) or equal to the specified $maxId.
+	 * @param	int[optional] $count	Specifies the number of statuses to retrieve. May not be greater than 200.
 	 * @param	int[optional] $page
 	 */
-	public function getDirectMessages($since = null, $sinceId = null, $page = null)
+	public function getDirectMessages($sinceId = null, $maxId = null, $count = null, $page = null)
 	{
 		// validate parameters
-		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId == '') throw new TwitterException('Invalid value for sinceId.');
+		if($maxId !== null && (string) $maxId == '') throw new TwitterException('Invalid value for maxId.');
+		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
 
-		// build parameters
+		// build url
 		$aParameters = array();
-		if($since !== null) $aParameters['since'] = date('r', (int) $since);
 		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
+		if($maxId !== null) $aParameters['max_id'] = (string) $maxId;
+		if($count !== null) $aParameters['count'] = (int) $count;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
 		// do the call
@@ -826,20 +841,23 @@ class Twitter
 	 * Returns a list of the 20 most recent direct messages sent by the authenticating user.
 	 *
 	 * @return	array
-	 * @param	int[optional] $since	Narrows the resulting list of direct messages to just those sent after the specified UNIX-timestamp, up to 24 hours old.
 	 * @param	string[optional] $sinceId	Returns only sent direct messages with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $maxId	Returns only statuses with an ID less than (that is, older than) or equal to the specified $maxId.
+	 * @param	int[optiona] $count	Specifies the number of direct messages to retrieve. May not be greater than 200.
 	 * @param	int[optional] $page
 	 */
-	public function getSentDirectMessages($since = null, $sinceId = null, $page = null)
+	public function getSentDirectMessages($sinceId = null, $maxId = null, $count = null, $page = null)
 	{
 		// validate parameters
-		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId == '') throw new TwitterException('Invalid value for sinceId.');
+		if($maxId !== null && (string) $maxId == '') throw new TwitterException('Invalid value for maxId.');
+		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
 
-		// build parameters
+		// build url
 		$aParameters = array();
-		if($since !== null) $aParameters['since'] = date('r', (int) $since);
 		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
+		if($maxId !== null) $aParameters['max_id'] = (string) $maxId;
+		if($count !== null) $aParameters['count'] = (int) $count;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
 		// do the call
@@ -1030,6 +1048,134 @@ class Twitter
 	}
 
 
+	/**
+	 * Returns detailed information about the relationship between two users.
+	 *
+	 * @return	array
+	 * @param	string $id	The id or screen name of the subject user.
+	 * @param	string $friendId	The id or screen name of the target user.
+	 */
+	public function getFriendship($id, $friendId)
+	{
+		// redefine
+		$id = (string) $id;
+		$friendId = (string) $friendId;
+
+		// build parameters
+		$aParameters = array();
+		if((bool) preg_match("/^[0-9]+$/", $id)) $aParameters['source_id'] = $id;
+		else $aParameters['source_screen_name'] = (string) $id;
+		if((bool) preg_match("/^[0-9]+$/", $friendId)) $aParameters['target_id'] = $friendId;
+		else $aParameters['target_screen_name'] = $friendId;
+
+		// do the call
+		$response = $this->doCall('friendships/show.xml', $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		$aReturn = array();
+		$aReturn['target']['id'] = (string) $xml->target->id;
+		$aReturn['target']['screen_name'] = (string) utf8_decode($xml->target->screen_name);
+		$aReturn['target']['following'] = (bool) ((string) $xml->target->following == 'true');
+		$aReturn['target']['followed_by'] = (bool) ((string) $xml->target->followed_by == 'true');
+
+		$aReturn['source']['id'] = (string) $xml->source->id;
+		$aReturn['source']['screen_name'] = (string) utf8_decode($xml->source->screen_name);
+		$aReturn['source']['following'] = (bool) ((string) $xml->source->following == 'true');
+		$aReturn['source']['followed_by'] = (bool) ((string) $xml->source->followed_by == 'true');
+		$aReturn['source']['notifications_enabled'] = (bool) ((string) $xml->source->notifications_enabled == 'true');
+		$aReturn['source']['blocking'] = (bool) ((string) $xml->source->blocking == 'true');
+
+		// return
+		return (array) $aReturn;
+	}
+
+
+// social grap methods
+	/**
+	 * Returns an array of numeric IDs for every user the specified user is following.
+	 *
+	 * @return	array
+	 * @param	string[optional] $id	The id or screen name of the user for whom to request a list of friends.
+	 * @param	int[optional] $page	Specifies the page number of the results beginning at 1. A single page contains 5000 ids. This is recommended for users with large ID lists. If not provided all ids are returned. (Please note that the result set isn't guaranteed to be 5000 every time as suspended users will be filtered out.)
+	 */
+	public function getFriendIds($id = null, $page = null)
+	{
+		// build parameters
+		$aParameters = array();
+		if($page !== null) $aParameters['page'] = (int) $page;
+
+		// build url
+		$url = 'friends/ids.xml';
+		if($id !== null) $url = 'friends/ids/'. urlencode($id) .'.xml';
+
+		// do the call
+		$response = $this->doCall($url, $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// init var
+		$aReturn = array();
+
+		if(isset($xml->id))
+		{
+			// loop ids
+			foreach($xml->id as $id) $aReturn[] = (string) $id;
+		}
+
+		// return
+		return (array) $aReturn;
+	}
+
+
+	/**
+	 * Returns an array of numeric IDs for every user following the specified user.
+	 *
+	 * @return	array
+	 * @param	string[optional] $id	The id or screen name  of the user to retrieve the friends ID list for.
+	 * @param	int[optional] $page	Specifies the page number of the results beginning at 1. A single page contains 5000 ids. This is recommended for users with large ID lists. If not provided all ids are returned. (Please note that the result set isn't guaranteed to be 5000 every time as suspended users will be filtered out.)
+	 */
+	public function getFollowerIds($id = null, $page = null)
+	{
+		// build parameters
+		$aParameters = array();
+		if($page !== null) $aParameters['page'] = (int) $page;
+
+		// build url
+		$url = 'followers/ids.xml';
+		if($id !== null) $url = 'followers/ids/'. urlencode($id) .'.xml';
+
+		// do the call
+		$response = $this->doCall($url, $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// init var
+		$aReturn = array();
+
+		if(isset($xml->id))
+		{
+			// loop ids
+			foreach($xml->id as $id) $aReturn[] = (string) $id;
+		}
+
+		// return
+		return (array) $aReturn;
+	}
+
+
 // account methods
 	/**
 	 * Verifies your credentials
@@ -1055,6 +1201,32 @@ class Twitter
 			if($e->getCode() == 401 || $e->getMessage() == 'Could not authenticate you.') return false;
 			else throw $e;
 		}
+	}
+
+
+	/**
+	 * Returns the remaining number of API requests available to the requesting user before the API limit is reached for the current hour.
+	 *
+	 * @return	array
+	 */
+	public function getRateLimitStatus()
+	{
+		// do the call
+		$response = $this->doCall('account/rate_limit_status.xml', array(), true);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// create response
+		if(isset($xml->{'remaining-hits'})) $aResponse['remaining_hits'] = (int) $xml->{'remaining-hits'};
+		if(isset($xml->{'reset-time-in-seconds'})) $aResponse['reset_time'] = (int) $xml->{'reset-time-in-seconds'};
+		if(isset($xml->{'hourly-limit'})) $aResponse['hourly_limit'] = (int) $xml->{'hourly-limit'};
+
+		// return
+		return $aResponse;
 	}
 
 
@@ -1106,48 +1278,6 @@ class Twitter
 
 		// return
 		return (array) $this->userXMLToArray($xml);
-	}
-
-
-	/**
-	 * Sets values that users are able to set under the "Account" tab of their settings page.
-	 * Only the parameters specified will be updated.
-	 *
-	 * @return	array
-	 * @param	string[optional] $name
-	 * @param	string[optional] $email
-	 * @param	string[optional] $url
-	 * @param	string[optional] $location
-	 * @param	string[optional] $description
-	 */
-	public function updateProfile($name = null, $email = null, $url = null, $location = null, $description = null)
-	{
-		// validate parameters
-		if($name === null && $email === null && $url === null && $location === null && $description === null) throw new TwitterException('Specify at least one parameter.');
-		if($name !== null && strlen($name) > 40) throw new TwitterException('Maximum 40 characters allowed for name.');
-		if($email !== null && strlen($email) > 40) throw new TwitterException('Maximum 40 characters allowed for email.');
-		if($url !== null && strlen($url) > 100) throw new TwitterException('Maximum 100 characters allowed for url.');
-		if($location !== null && strlen($location) > 30) throw new TwitterException('Maximum 30 characters allowed for location.');
-		if($description !== null && strlen($description) > 160) throw new TwitterException('Maximum 160 characters allowed for description.');
-
-		// build parameters
-		if($name !== null) $aParameters['name'] = (string) $name;
-		if($email !== null) $aParameters['email'] = (string) $email;
-		if($url !== null) $aParameters['url'] = (string) $url;
-		if($location !== null) $aParameters['location'] = (string) $location;
-		if($description !== null) $aParameters['description'] = (string) $description;
-
-		// make the call
-		$response = $this->doCall('account/update_profile.xml', $aParameters, true);
-
-		// convert into xml-object
-		$xml = @simplexml_load_string($response);
-
-		// validate
-		if($xml == false) throw new TwitterException('invalid body');
-
-		// return
-		return (array) $this->userXMLToArray($xml, true);
 	}
 
 
@@ -1254,14 +1384,35 @@ class Twitter
 
 
 	/**
-	 * Returns the remaining number of API requests available to the requesting user before the API limit is reached for the current hour.
+	 * Sets values that users are able to set under the "Account" tab of their settings page.
+	 * Only the parameters specified will be updated.
 	 *
 	 * @return	array
+	 * @param	string[optional] $name
+	 * @param	string[optional] $email
+	 * @param	string[optional] $url
+	 * @param	string[optional] $location
+	 * @param	string[optional] $description
 	 */
-	public function getRateLimitStatus()
+	public function updateProfile($name = null, $email = null, $url = null, $location = null, $description = null)
 	{
-		// do the call
-		$response = $this->doCall('account/rate_limit_status.xml', array(), true);
+		// validate parameters
+		if($name === null && $email === null && $url === null && $location === null && $description === null) throw new TwitterException('Specify at least one parameter.');
+		if($name !== null && strlen($name) > 40) throw new TwitterException('Maximum 40 characters allowed for name.');
+		if($email !== null && strlen($email) > 40) throw new TwitterException('Maximum 40 characters allowed for email.');
+		if($url !== null && strlen($url) > 100) throw new TwitterException('Maximum 100 characters allowed for url.');
+		if($location !== null && strlen($location) > 30) throw new TwitterException('Maximum 30 characters allowed for location.');
+		if($description !== null && strlen($description) > 160) throw new TwitterException('Maximum 160 characters allowed for description.');
+
+		// build parameters
+		if($name !== null) $aParameters['name'] = (string) $name;
+		if($email !== null) $aParameters['email'] = (string) $email;
+		if($url !== null) $aParameters['url'] = (string) $url;
+		if($location !== null) $aParameters['location'] = (string) $location;
+		if($description !== null) $aParameters['description'] = (string) $description;
+
+		// make the call
+		$response = $this->doCall('account/update_profile.xml', $aParameters, true);
 
 		// convert into xml-object
 		$xml = @simplexml_load_string($response);
@@ -1269,13 +1420,8 @@ class Twitter
 		// validate
 		if($xml == false) throw new TwitterException('invalid body');
 
-		// create response
-		if(isset($xml->{'remaining-hits'})) $aResponse['remaining_hits'] = (int) $xml->{'remaining-hits'};
-		if(isset($xml->{'reset-time-in-seconds'})) $aResponse['reset_time'] = (int) $xml->{'reset-time-in-seconds'};
-		if(isset($xml->{'hourly-limit'})) $aResponse['hourly_limit'] = (int) $xml->{'hourly-limit'};
-
 		// return
-		return $aResponse;
+		return (array) $this->userXMLToArray($xml, true);
 	}
 
 
@@ -1512,6 +1658,119 @@ class Twitter
 	}
 
 
+	/**
+	 * Returns if the authenticating user is blocking a target user.
+	 *
+	 * @return	bool
+	 * @param	string $id	The id or screen_name of the potentially blocked user.
+	 */
+	public function existsBlock($id)
+	{
+		// redefine
+		$id = (string) $id;
+
+		// build url
+		$url = 'blocks/exists/'. urlencode($id) .'.xml';
+
+		// build parameters
+		$aParameters = array();
+		$aParameters['id'] = $id;
+
+		// do the call
+		try
+		{
+			$response = $this->doCall($url, $aParameters, true, false);
+		}
+
+		// catch exceptions
+		catch(Exception $e)
+		{
+			// not blocking
+			if($e->getMessage() == 'You are not blocking this user.') return false;
+
+			// other exceptions
+			else throw $e;
+		}
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// return
+		return true;
+	}
+
+
+	/**
+	 * Returns an array of user that the authenticating user is blocking.
+	 *
+	 * @return	array
+	 * @param	int[optional] $page	Specifies the page number of the results beginning at 1. A single page contains 20 ids.
+	 */
+	public function getBlocked($page = null)
+	{
+		// build parameters
+		$aParameters = array();
+		if($page !== null) $aParameters['page'] = (int) $page;
+
+		// build url
+		$url = 'blocks/blocking.xml';
+
+		// do the call
+		$response = $this->doCall($url, $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// init var
+		$aUsers = array();
+
+		// loop statuses
+		foreach ($xml->user as $user) $aUsers[] = $this->userXMLToArray($user);
+
+		// return
+		return (array) $aUsers;
+	}
+
+
+	/**
+	 * Returns an array of numeric user ids the authenticating user is blocking.
+	 *
+	 * @return	array
+	 */
+	public function getBlockedIds()
+	{
+		// build parameters
+		$aParameters = array();
+
+		// build url
+		$url = 'blocks/blocking/ids.xml';
+
+		// do the call
+		$response = $this->doCall($url, $aParameters, true, false);
+
+		// convert into xml-object
+		$xml = @simplexml_load_string($response);
+
+		// validate
+		if($xml == false) throw new TwitterException('invalid body');
+
+		// init var
+		$aUsers = array();
+
+		// loop statuses
+		foreach ($xml->id as $id) $aUsers[] = (string) $id;
+
+		// return
+		return (array) $aUsers;
+	}
+
+
 // help methods
 	/**
 	 * Test the connection to Twitter
@@ -1526,35 +1785,13 @@ class Twitter
 		// validate response & return
 		return (bool) ($response == '<ok>true</ok>');
 	}
-
-
-	/**
-	 * Returns the same text displayed on http://twitter.com/home when a maintenance window is scheduled.
-	 *
-	 * @return	string
-	 */
-	public function getDowntimeSchedule()
-	{
-		// make the call
-		$response = $this->doCall('help/downtime_schedule.xml');
-
-		// convert into xml-object
-		$xml = simplexml_load_string($response);
-
-		// validate
-		if($xml == false) throw new TwitterException('invalid body');
-		if(!isset($xml->error)) throw new TwitterException('invalid body');
-
-		// return
-		return (string) utf8_decode($xml->error);
-	}
 }
 
 
 /**
  * Twitter Exception class
  *
- * @author			Tijs Verkoyen <php-twitter@verkoyen.eu>
+ * @author	Tijs Verkoyen <php-twitter@verkoyen.eu>
  */
 class TwitterException extends Exception
 {
