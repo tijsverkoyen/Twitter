@@ -10,6 +10,9 @@
  * Changelog since 1.0.0
  * - dont send postfields as an array, pass them as an urldecoded string (otherwise @ won't work
  *
+ * Changelog since 1.0.1
+ * - fixed a bug in verifyCredentials, it return a boolean instead of throwing an exception when the credentials are invalid (thx @Rahul)
+ *
  * License
  * Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  *
@@ -22,7 +25,7 @@
  * This software is provided by the author "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
  *
  * @author			Tijs Verkoyen <php-twitter@verkoyen.eu>
- * @version			1.0.1
+ * @version			1.0.2
  *
  * @copyright		Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  * @license			BSD License
@@ -39,7 +42,7 @@ class Twitter
 	const TWITTER_API_PORT = 80;
 
 	// current version
-	const VERSION = '1.0.1';
+	const VERSION = '1.0.2';
 
 
 	/**
@@ -1046,7 +1049,7 @@ class Twitter
 		}
 		catch (Exception $e)
 		{
-			if($e->getCode() == 401) return false;
+			if($e->getCode() == 401 || $e->getMessage() == 'Could not authenticate you.') return false;
 			else throw $e;
 		}
 	}
