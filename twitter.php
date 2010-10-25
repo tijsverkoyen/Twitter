@@ -13,6 +13,9 @@
  * Changelog since 1.0.1
  * - fixed a bug in verifyCredentials, it return a boolean instead of throwing an exception when the credentials are invalid (thx @Rahul)
  *
+ * Changelog since 1.0.2
+ * - sinceId is from now on treated as a string instead of int. (thx @Paul Matthews)
+ *
  * License
  * Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  *
@@ -25,7 +28,7 @@
  * This software is provided by the author "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
  *
  * @author			Tijs Verkoyen <php-twitter@verkoyen.eu>
- * @version			1.0.2
+ * @version			1.0.3
  *
  * @copyright		Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  * @license			BSD License
@@ -42,7 +45,7 @@ class Twitter
 	const TWITTER_API_PORT = 80;
 
 	// current version
-	const VERSION = '1.0.2';
+	const VERSION = '1.0.3';
 
 
 	/**
@@ -443,7 +446,7 @@ class Twitter
 	 *
 	 * @return	array
 	 * @param	int[optional] $since	Narrows the returned results to just those statuses created after the specified UNIX-timestamp, up to 24 hours old.
-	 * @param	int[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
 	 * @param	int[optional] $count	Specifies the number of statuses to retrieve. May not be greater than 200.
 	 * @param	int[optional] $page
 	 */
@@ -451,13 +454,13 @@ class Twitter
 	{
 		// validate parameters
 		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (int) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
 		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
 
 		// build url
 		$aParameters = array();
 		if($since !== null) $aParameters['since'] = date('r', (int) $since);
-		if($sinceId !== null) $aParameters['since_id'] = (int) $sinceId;
+		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
 		if($count !== null) $aParameters['count'] = (int) $count;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
@@ -488,7 +491,7 @@ class Twitter
 	 * @return	array
 	 * @param	string[optional] $id	Specifies the id or screen name of the user for whom to return the friends_timeline.
 	 * @param	int[optional] $since	Narrows the returned results to just those statuses created after the specified UNIX-timestamp, up to 24 hours old.
-	 * @param	int[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
 	 * @param	int[optional] $count	Specifies the number of statuses to retrieve. May not be greater than 200.
 	 * @param	int[optional] $page
 	 */
@@ -496,13 +499,13 @@ class Twitter
 	{
 		// validate parameters
 		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (int) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
 		if($count !== null && (int) $count > 200) throw new TwitterException('Count can\'t be larger then 200.');
 
 		// build parameters
 		$aParameters = array();
 		if($since !== null) $aParameters['since'] = date('r', (int) $since);
-		if($sinceId !== null) $aParameters['since_id'] = (int) $sinceId;
+		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
 		if($count !== null) $aParameters['count'] = (int) $count;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
@@ -598,19 +601,19 @@ class Twitter
 	 *
 	 * @return	array
 	 * @param	int[optional] $since	Narrows the returned results to just those replies created after the specified UNIX-timestamp, up to 24 hours old.
-	 * @param	int[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $sinceId	Returns only statuses with an id greater than (that is, more recent than) the specified $sinceId.
 	 * @param	int[optional] $page
 	 */
 	public function getReplies($since = null, $sinceId = null, $page = null)
 	{
 		// validate parameters
 		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (int) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
 
 		// build parameters
 		$aParameters = array();
 		if($since !== null) $aParameters['since'] = date('r', (int) $since);
-		if($sinceId !== null) $aParameters['since_id'] = (int) $sinceId;
+		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
 		// do the call
@@ -784,19 +787,19 @@ class Twitter
 	 *
 	 * @return	array
 	 * @param	int[optional] $since	Narrows the resulting list of direct messages to just those sent after the specified UNIX-timestamp, up to 24 hours old.
-	 * @param	int[optional] $sinceId	Returns only direct messages with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $sinceId	Returns only direct messages with an id greater than (that is, more recent than) the specified $sinceId.
 	 * @param	int[optional] $page
 	 */
 	public function getDirectMessages($since = null, $sinceId = null, $page = null)
 	{
 		// validate parameters
 		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (int) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
 
 		// build parameters
 		$aParameters = array();
 		if($since !== null) $aParameters['since'] = date('r', (int) $since);
-		if($sinceId !== null) $aParameters['since_id'] = (int) $sinceId;
+		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
 		// do the call
@@ -824,19 +827,19 @@ class Twitter
 	 *
 	 * @return	array
 	 * @param	int[optional] $since	Narrows the resulting list of direct messages to just those sent after the specified UNIX-timestamp, up to 24 hours old.
-	 * @param	int[optional] $sinceId	Returns only sent direct messages with an id greater than (that is, more recent than) the specified $sinceId.
+	 * @param	string[optional] $sinceId	Returns only sent direct messages with an id greater than (that is, more recent than) the specified $sinceId.
 	 * @param	int[optional] $page
 	 */
 	public function getSentDirectMessages($since = null, $sinceId = null, $page = null)
 	{
 		// validate parameters
 		if($since !== null && (int) $since <= 0) throw new TwitterException('Invalid timestamp for since.');
-		if($sinceId !== null && (int) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
+		if($sinceId !== null && (string) $sinceId <= 0) throw new TwitterException('Invalid value for sinceId.');
 
 		// build parameters
 		$aParameters = array();
 		if($since !== null) $aParameters['since'] = date('r', (int) $since);
-		if($sinceId !== null) $aParameters['since_id'] = (int) $sinceId;
+		if($sinceId !== null) $aParameters['since_id'] = (string) $sinceId;
 		if($page !== null) $aParameters['page'] = (int) $page;
 
 		// do the call
