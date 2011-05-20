@@ -130,7 +130,7 @@ class Twitter
 		$usePost = (bool) $usePost;
 
 		// build url
-		$url = self::TWITTER_API_URL .'/'. $url;
+		$url = self::TWITTER_API_URL . '/' . $url;
 
 		// validate needed authentication
 		if($authenticate && ($this->getUsername() == '' || $this->getPassword() == '')) throw new TwitterException('No username or password was set.');
@@ -142,13 +142,13 @@ class Twitter
 			$queryString = '';
 
 			// loop parameters and add them to the queryString
-			foreach($aParameters as $key => $value) $queryString .= '&'. $key .'='. urlencode(utf8_encode($value));
+			foreach($aParameters as $key => $value) $queryString .= '&' . $key . '=' . urlencode(utf8_encode($value));
 
 			// cleanup querystring
 			$queryString = trim($queryString, '&');
 
 			// append to url
-			$url .= '?'. $queryString;
+			$url .= '?' . $queryString;
 		}
 
 		// set options
@@ -163,7 +163,7 @@ class Twitter
 		if($authenticate)
 		{
 			$options[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
-			$options[CURLOPT_USERPWD] = $this->getUsername() .':'. $this->getPassword();
+			$options[CURLOPT_USERPWD] = $this->getUsername() . ':' . $this->getPassword();
 		}
 
 		// are there any parameters?
@@ -172,7 +172,7 @@ class Twitter
 			$var = '';
 
 			// rebuild parameters
-			foreach($aParameters as $key => $value) $var .= '&'. $key .'='. urlencode($value);
+			foreach($aParameters as $key => $value) $var .= '&' . $key . '=' . urlencode($value);
 
 			// set extra options
 			$options[CURLOPT_POST] = true;
@@ -267,7 +267,7 @@ class Twitter
 	 */
 	public function getUserAgent()
 	{
-		return (string) 'PHP Twitter/'. self::VERSION .' '. $this->userAgent;
+		return (string) 'PHP Twitter/' . self::VERSION . ' ' . $this->userAgent;
 	}
 
 
@@ -529,7 +529,7 @@ class Twitter
 
 		// build url
 		$url = 'statuses/user_timeline.xml';
-		if($id !== null) $url = 'statuses/user_timeline/'. urlencode($id) .'.xml';
+		if($id !== null) $url = 'statuses/user_timeline/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -607,7 +607,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'statuses/show/'. urlencode($id) .'.xml';
+		$url = 'statuses/show/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url);
@@ -671,7 +671,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'statuses/destroy/'. urlencode($id) .'.xml';
+		$url = 'statuses/destroy/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -706,7 +706,7 @@ class Twitter
 		$aParameters = array();
 
 		// build url
-		$url = 'users/show/'. urlencode($id) .'.xml';
+		$url = 'users/show/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -738,7 +738,7 @@ class Twitter
 
 		// build url
 		$url = 'statuses/friends.xml';
-		if($id !== null) $url = 'statuses/friends/'. urlencode($id) .'.xml';
+		if($id !== null) $url = 'statuses/friends/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -775,7 +775,7 @@ class Twitter
 
 		// build url
 		$url = 'statuses/followers.xml';
-		if($id !== null) $url = 'statuses/followers/'. urlencode($id) .'.xml';
+		if($id !== null) $url = 'statuses/followers/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -933,7 +933,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'direct_messages/destroy/'. urlencode($id) .'.xml';
+		$url = 'direct_messages/destroy/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -968,7 +968,7 @@ class Twitter
 		$follow = (bool) $follow;
 
 		// build url
-		$url = 'friendships/create/'. urlencode($id) .'.xml';
+		$url = 'friendships/create/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1001,7 +1001,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'friendships/destroy/'. urlencode($id) .'.xml';
+		$url = 'friendships/destroy/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1116,7 +1116,7 @@ class Twitter
 
 		// build url
 		$url = 'friends/ids.xml';
-		if($id !== null) $url = 'friends/ids/'. urlencode($id) .'.xml';
+		if($id !== null) $url = 'friends/ids/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -1156,7 +1156,7 @@ class Twitter
 
 		// build url
 		$url = 'followers/ids.xml';
-		if($id !== null) $url = 'followers/ids/'. urlencode($id) .'.xml';
+		if($id !== null) $url = 'followers/ids/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -1263,7 +1263,7 @@ class Twitter
 		$aPossibleDevices = array('sms', 'im', 'none');
 
 		// validate parameters
-		if(!in_array($device, $aPossibleDevices)) throw new TwitterException('Invalid value for device. Possible values are: '. implode(', ', $aPossibleDevices) .'.');
+		if(!in_array($device, $aPossibleDevices)) throw new TwitterException('Invalid value for device. Possible values are: ' . implode(', ', $aPossibleDevices) . '.');
 
 		// build url
 		$url = 'account/update_delivery_device.xml';
@@ -1445,7 +1445,7 @@ class Twitter
 		if($page !== null) $aParameters['page'] = (int) $page;
 
 		$url = 'favorites.xml';
-		if($id !== null) $url = 'favorites/'. urlencode($id) .'.xml';
+		if($id !== null) $url = 'favorites/' . urlencode($id) . '.xml';
 
 		// do the call
 		$response = $this->doCall($url, $aParameters, true, false);
@@ -1479,7 +1479,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'favorites/create/'. urlencode($id) .'.xml';
+		$url = 'favorites/create/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1511,7 +1511,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'favorites/destroy/'. urlencode($id) .'.xml';
+		$url = 'favorites/destroy/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1545,7 +1545,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'notifications/follow/'. urlencode($id) .'.xml';
+		$url = 'notifications/follow/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1578,7 +1578,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'notifications/leave/'. urlencode($id) .'.xml';
+		$url = 'notifications/leave/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1611,7 +1611,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'blocks/create/'. urlencode($id) .'.xml';
+		$url = 'blocks/create/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1643,7 +1643,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'blocks/destroy/'. urlencode($id) .'.xml';
+		$url = 'blocks/destroy/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
@@ -1675,7 +1675,7 @@ class Twitter
 		$id = (string) $id;
 
 		// build url
-		$url = 'blocks/exists/'. urlencode($id) .'.xml';
+		$url = 'blocks/exists/' . urlencode($id) . '.xml';
 
 		// build parameters
 		$aParameters = array();
